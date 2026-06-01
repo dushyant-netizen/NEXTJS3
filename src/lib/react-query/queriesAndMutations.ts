@@ -454,11 +454,14 @@ export const useDeletePost = () => {
     },
   });
 };
-export const useGetUserPosts = (userId?: string) => {
+export const useGetUserPosts = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
-    queryFn: () => getUserPosts(userId!),
-    enabled: !!userId,
+    queryFn: () => getUserPosts(userId),
+    enabled: enabled && !!userId,
   });
 };
 // @ts-ignore
@@ -595,51 +598,63 @@ export const useGetLikedPosts = (userId?: string) => {
   });
 };
 
-export const useGetUserById = (userId: string) => {
+export const useGetUserById = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
     queryFn: () => getUserById(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
   });
 };
 
 // Public hooks for unauthenticated access
-export const useGetPublicUserById = (userId: string) => {
+export const useGetPublicUserById = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_USER_BY_ID, 'public', userId],
+    queryKey: [QUERY_KEYS.GET_USER_BY_ID, "public", userId],
     queryFn: () => getPublicUserById(userId),
-    enabled: !!userId,
-    retry: 1, // Reduce retries for faster failure
+    enabled: enabled && !!userId,
+    retry: 1,
   });
 };
 
-export const useGetPublicUserPosts = (userId: string) => {
+export const useGetPublicUserPosts = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_USER_POSTS, 'public', userId],
+    queryKey: [QUERY_KEYS.GET_USER_POSTS, "public", userId],
     queryFn: () => getPublicUserPosts(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
     retry: 1,
   });
 };
-
-export const useGetPublicFollowersCount = (userId: string) => {
+export const useGetPublicFollowersCount = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_FOLLOWERS_COUNT, 'public', userId],
+    queryKey: [QUERY_KEYS.GET_FOLLOWERS_COUNT, "public", userId],
     queryFn: () => getPublicFollowersCount(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
     retry: 1,
   });
 };
-
-export const useGetPublicFollowingCount = (userId: string) => {
+export const useGetPublicFollowingCount = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_FOLLOWING_COUNT, 'public', userId],
+    queryKey: [QUERY_KEYS.GET_FOLLOWING_COUNT, "public", userId],
     queryFn: () => getPublicFollowingCount(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
     retry: 1,
   });
 };
-
 export const useGetPublicPostById = (postId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_POST_BY_ID, 'public', postId],
@@ -820,30 +835,37 @@ export const useUnfollowUser = () => {
   });
 };
 
-export const useGetFollowersCount = (userId: string) => {
+export const useGetFollowersCount = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWERS_COUNT, userId],
     queryFn: () => getFollowersCount(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
   });
 };
 
-export const useGetFollowingCount = (userId: string) => {
+export const useGetFollowingCount = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWING_COUNT, userId],
     queryFn: () => getFollowingCount(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
   });
 };
-
-export const useIsFollowing = (userId: string) => {
+export const useIsFollowing = (
+  userId: string,
+  enabled: boolean = true
+) => {
   return useQuery({
     queryKey: [QUERY_KEYS.IS_FOLLOWING, userId],
     queryFn: () => isFollowing(userId),
-    enabled: !!userId,
+    enabled: enabled && !!userId,
   });
 };
-
 export const useGetFollowers = (userId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWERS, userId],

@@ -1,31 +1,28 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import '../src/globals.css'
-import { QueryProvider } from '../src/lib/react-query/QueryProvider'
-import { AuthProvider } from '../src/context/SupabaseAuthContext'
-import { NotificationProvider } from '../src/context/NotificationContext'
-import NotificationManager from '../src/components/NotificationManager'
-import { Toaster } from '../src/components/ui/toaster'
-import '../src/lib/utils/suppressAuthWarnings'
-
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata } from "next";
+import "../src/globals.css";
+import { QueryProvider } from "../src/lib/react-query/QueryProvider";
+import { AuthProvider } from "../src/context/SupabaseAuthContext";
+import { NotificationProvider } from "../src/context/NotificationContext";
+import NotificationManager from "../src/components/NotificationManager";
+import { Toaster } from "../src/components/ui/toaster";
+import "../src/lib/utils/suppressAuthWarnings";
 
 export const metadata: Metadata = {
-  title: 'SOCAL',
-  description: 'A social media application powered by Next.js and Supabase',
+  title: "SOCAL",
+  description: "A social media application powered by Next.js and Supabase",
   icons: {
-    icon: '/assets/images/favicon.ico',
+    icon: "/assets/images/favicon.ico",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
         <QueryProvider>
           <AuthProvider>
             <NotificationProvider>
@@ -37,5 +34,5 @@ export default function RootLayout({
         </QueryProvider>
       </body>
     </html>
-  )
+  );
 }
