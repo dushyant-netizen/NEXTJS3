@@ -18,6 +18,10 @@ export const sidebarLinks = [
       imgURL: "/assets/icons/bookmark.svg",
       route: "/saved",
       label: "Saved",
+    },{
+      imgURL: "/assets/icons/bell.svg",
+      route: "/notifications",
+      label: "Notification",
     },
     {
       imgURL: "/assets/icons/gallery-add.svg",

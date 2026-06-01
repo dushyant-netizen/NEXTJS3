@@ -1,33 +1,18 @@
 "use client";
 
-import PostDetails from './PostDetails';
-import { useGetPostById } from '../../lib/react-query/queriesAndMutations';
-import ClientLayoutWrapper from '../ClientLayoutWrapper';
-import Loader from '../../components/shared/Loader';
+import PostDetails from "./PostDetails";
+import ClientLayoutWrapper from "@/components/shared/ClientLayoutWrapper"; // 💡 OPTIMIZATION: Swapped to absolute paths
 
 interface PostDetailsWrapperProps {
-  postId: string;
+  postId: string; // Kept for prop-type strictness if used by a parent route, but omitted internal fetches
 }
 
 const PostDetailsWrapper = ({ postId }: PostDetailsWrapperProps) => {
-  const { data: post, isLoading } = useGetPostById(postId);
-
-  if (isLoading) {
-    return (
-      <div className="flex-center w-full h-full">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="flex-center w-full h-full">
-        <p className="text-light-4">Post not found</p>
-      </div>
-    );
-  }
-
+  /*
+    🛠️ FIX: Removed the duplicate useGetPostById query hook. 
+    PostDetails already extracts the postId from useParams and manages its own 
+    loading/error boundaries natively, eliminating redundant database roundtrips.
+  */
   return (
     <ClientLayoutWrapper>
       <PostDetails />

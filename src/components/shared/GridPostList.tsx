@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useUserContext } from "@/context/SupabaseAuthContext";
 import PostStats from "./PostStats";
 
@@ -18,47 +19,77 @@ const GridPostList = ({
   showComments = true,
 }: GridPostListProps) => {
   const { user } = useUserContext();
+  const router = useRouter();
+
+  // Safeguard if data array isn't populated or returns null/undefined
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="flex-center w-full min-h-[200px] text-dark-4 text-sm">
+        No posts available yet.
+      </div>
+    );
+  }
 
   return (
-    <ul className="grid-container">
-      {posts.map((post) => (
-        <li key={post.id || post.$id} className="relative min-w-80 h-80">
-          <Link href={`/posts/${post.id || post.$id}`} className="grid-post_link">
-            <img
-              src={post.image_url || post.imageUrl}
-              alt="post"
-              className="h-full w-full object-cover"
-            />
-          </Link>
+    <ul className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl px-4 py-6 mx-auto">
+      {posts.map((post) => {
+        const postId = post.id || post.$id;
+        // Fallback placeholder image if url is null or broken
+        const postImg = post.image_url || post.imageUrl || "https://placehold.co/600x600/1F1F22/FFFFFF?text=No+Image";
 
-          <div className="grid-post_user">
-            {showUser && (
-              <div className="flex items-center justify-start gap-2 flex-1">
-                <img
-                  src={
-                    post.creator?.image_url || post.creator?.imageUrl ||
-                    "/assets/icons/profile-placeholder.svg"
-                  }
-                  alt="creator"
-                  className="w-8 h-8 rounded-full"
-                />
-                <p className="line-clamp-1">{post.creator?.name}</p>
-              </div>
-            )}
-            {showStats && (
-              <PostStats 
-                post={post} 
-                userId={user?.id || ""} 
-                showComments={showComments}
-                onCommentClick={() => {
-                  // For grid view, navigate to post detail page for comments
-                  window.location.href = `/posts/${post.id || post.$id}`;
+        return (
+          <li 
+            key={postId} 
+            className="relative w-full h-80 rounded-2xl overflow-hidden border border-dark-4 bg-dark-3 group cursor-pointer transition-all duration-300 hover:scale-[1.01]"
+          >
+            {/* Post Image Container */}
+            <Link href={`/posts/${postId}`} className="block w-full h-full">
+              <img
+                src={postImg}
+                alt="post text content"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  // Catches broken server URLs on runtime error
+                  (e.target as HTMLImageElement).src = "https://placehold.co/600x600/1F1F22/FFFFFF?text=No+Image";
                 }}
               />
-            )}
-          </div>
-        </li>
-      ))}
+            </Link>
+
+            {/* Bottom Overlay Layer */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-dark-1/95 via-dark-1/50 to-transparent flex items-center justify-between gap-2">
+              {showUser && (
+                <div className="flex items-center justify-start gap-2 flex-1">
+                  <img
+                    src={
+                      post.creator?.image_url || post.creator?.imageUrl ||
+                      "/assets/icons/profile-placeholder.svg"
+                    }
+                    alt="creator avatar"
+                    className="w-8 h-8 rounded-full object-cover border border-dark-4"
+                  />
+                  <p className="line-clamp-1 text-light-1 text-sm font-medium">
+                    {post.creator?.name || "User"}
+                  </p>
+                </div>
+              )}
+              
+              {showStats && (
+                <div className="bg-dark-2/40 backdrop-blur-md rounded-xl p-1.5 px-2 transition-colors hover:bg-dark-2/70">
+                  <PostStats 
+                    post={post} 
+                    userId={user?.id || ""} 
+                    showComments={showComments}
+                    onCommentClick={() => {
+                      // Optimized Next.js SPA push navigation strategy
+                      router.push(`/posts/${postId}`);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 };

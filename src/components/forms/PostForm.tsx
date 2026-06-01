@@ -106,121 +106,117 @@ const PostForm = ({ post, action }: PostFormProps) => {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-col gap-9 w-full  max-w-5xl">
-        <FormField
-          control={form.control}
-          name="caption"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="shad-form_label">Caption</FormLabel>
+  <form
+    onSubmit={form.handleSubmit(handleSubmit)}
+    className="flex flex-col gap-6 w-full max-w-2xl mx-auto" // Balanced spacing and max-width
+  >
+    {/* Caption - Increased visual height */}
+    <FormField
+      control={form.control}
+      name="caption"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-sm font-semibold text-light-2">Caption</FormLabel>
+          <FormControl>
+            <Textarea
+              className="shad-textarea custom-scrollbar min-h-[120px] bg-dark-3/50 border-none focus-visible:ring-1 focus-visible:ring-primary-500"
+              placeholder="What's on your mind?"
+              {...field}
+            />
+          </FormControl>
+          <FormMessage className="text-xs text-red-500" />
+        </FormItem>
+      )}
+    />
+
+    {/* File Uploader - Given more breathing room */}
+    <FormField
+      control={form.control}
+      name="file"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-sm font-semibold text-light-2">Media</FormLabel>
+          <FormControl>
+            <FileUploader fieldChange={field.onChange} mediaUrl={post?.imageUrl} />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+
+    {/* Group Location and Category in a row for better UI balance */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField
+        control={form.control}
+        name="location"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-sm font-semibold text-light-2">Location</FormLabel>
+            <FormControl>
+              <Input type="text" className="shad-input bg-dark-3/50" placeholder="e.g. San Francisco" {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="category"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-sm font-semibold text-light-2">Category</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
-                <Textarea
-                  className="shad-textarea custom-scrollbar"
-                  style={{ height: '80px', minHeight: '80px' }}
-                  {...field}
-                />
+                <SelectTrigger className="shad-input bg-dark-3/50">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
               </FormControl>
-              <FormMessage className="shad-form_message" />
-            </FormItem>
-          )}
-        />
+              <SelectContent className="bg-dark-2 border-dark-4">
+                {POST_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value} className="hover:bg-dark-3 cursor-pointer">
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
+      />
+    </div>
 
-        <FormField
-          control={form.control}
-          name="file"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="shad-form_label">Add Photos</FormLabel>
-              <FormControl>
-                <FileUploader
-                  fieldChange={field.onChange}
-                  mediaUrl={post?.imageUrl}
-                />
-              </FormControl>
-              <FormMessage className="shad-form_message" />
-            </FormItem>
-          )}
-        />
+    {/* Tags - Kept separate to keep the grid clean */}
+    <FormField
+      control={form.control}
+      name="tags"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-sm font-semibold text-light-2">Tags (comma separated)</FormLabel>
+          <FormControl>
+            <Input placeholder="Art, Design, Tech" type="text" className="shad-input bg-dark-3/50" {...field} />
+          </FormControl>
+        </FormItem>
+      )}
+    />
 
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="shad-form_label">Add Location</FormLabel>
-              <FormControl>
-                <Input type="text" className="shad-input" {...field} />
-              </FormControl>
-              <FormMessage className="shad-form_message" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="shad-form_label">
-                Add Tags (separated by comma " , ")
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Art, Expression, Learn"
-                  type="text"
-                  className="shad-input"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="shad-form_message" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="shad-form_label">Category *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="shad-input">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {POST_CATEGORIES.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage className="shad-form_message" />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex gap-4 items-center justify-end pt-6 pb-8 mb-6">
-          <Button
-            type="button"
-            className="shad-button_dark_4"
-            onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            className="shad-button_primary whitespace-nowrap"
-            disabled={isLoadingCreate || isLoadingUpdate}>
-            {(isLoadingCreate || isLoadingUpdate) && <Loader />}
-            {action} Post
-          </Button>
-        </div>
-      </form>
-    </Form>
+    {/* Footer Buttons - Standardized height and focus */}
+    <div className="flex gap-4 items-center justify-end pt-4 border-t border-dark-4/50">
+      <Button
+        type="button"
+        variant="ghost"
+        className="text-light-2 hover:bg-dark-3"
+        onClick={() => router.back()}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        className="bg-primary-500 hover:bg-primary-500/90 text-white px-8 h-11"
+        disabled={isLoadingCreate || isLoadingUpdate}
+      >
+        {(isLoadingCreate || isLoadingUpdate) ? <Loader /> : `${action} Post`}
+      </Button>
+    </div>
+  </form>
+</Form>
   );
 };
 

@@ -4,7 +4,7 @@ import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/lib/react-quer
 import { useUserContext } from "@/context/SupabaseAuthContext";
 
 type UserCardProps = {
-  user: any; // TODO: Add proper Supabase user type
+  user: any;
 };
 
 const UserCard = ({ user }: UserCardProps) => {
@@ -12,11 +12,11 @@ const UserCard = ({ user }: UserCardProps) => {
   const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id);
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
-  
+
   const handleFollowToggle = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation when clicking the button
+    e.preventDefault();
     e.stopPropagation();
-    
+
     if (isCurrentlyFollowing) {
       unfollowMutation.mutate(user.id);
     } else {
@@ -27,36 +27,46 @@ const UserCard = ({ user }: UserCardProps) => {
   const isOwnProfile = currentUser?.id === user.id;
 
   return (
-    <Link href={`/profile/${user.id}`} className="user-card">
-      <img
-        src={user.image_url || "/assets/icons/profile-placeholder.svg"}
-        alt="creator"
-        className="rounded-full w-14 h-14"
-      />
+    <Link 
+      href={`/profile/${user.id}`} 
+      className="group flex items-center gap-4 p-4 bg-dark-2 hover:bg-dark-3 border border-dark-4 hover:border-primary-500/30 rounded-2xl transition-all duration-200"
+    >
+      {/* Profile Picture */}
+      <div className="relative">
+        <img
+          src={user.image_url || "/assets/icons/profile-placeholder.svg"}
+          alt={user.name}
+          className="w-14 h-14 rounded-2xl object-cover ring-2 ring-dark-4 group-hover:ring-primary-500 transition-all"
+        />
+        {/* Online Status Indicator */}
+        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-dark-2"></div>
+      </div>
 
-      <div className="flex-center flex-col gap-1">
-        <p className="base-medium text-light-1 text-center line-clamp-1">
+      {/* User Info */}
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-light-1 truncate group-hover:text-primary-500 transition-colors">
           {user.name}
         </p>
-        <p className="small-regular text-light-3 text-center line-clamp-1">
+        <p className="text-light-3 text-sm truncate">
           @{user.username}
         </p>
       </div>
 
+      {/* Follow Button */}
       {!isOwnProfile && (
         <Button 
           type="button" 
           size="sm" 
-          className={`px-5 ${
+          className={`min-w-[90px] transition-all ${
             isCurrentlyFollowing 
-              ? "bg-dark-4 hover:bg-dark-3 text-light-1" 
-              : "shad-button_primary"
+              ? "bg-dark-4 hover:bg-dark-3 text-light-1 border border-dark-4" 
+              : "bg-primary-500 hover:bg-primary-600 text-white"
           }`}
           onClick={handleFollowToggle}
           disabled={followMutation.isPending || unfollowMutation.isPending || isFollowingLoading}
         >
           {followMutation.isPending || unfollowMutation.isPending 
-            ? "Loading..." 
+            ? "..." 
             : isCurrentlyFollowing 
               ? "Following" 
               : "Follow"

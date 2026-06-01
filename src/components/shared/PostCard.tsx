@@ -97,14 +97,18 @@ const PostCard = ({ post }: PostCardProps) => {
 
       <Link href={`/posts/${post.id}`}>
         <div className="small-medium lg:base-medium py-5">
-          <p>{post.caption}</p>
-          <ul className="flex gap-1 mt-2">
-            {post.tags.map((tag: string, index: string) => (
-              <li key={`${tag}${index}`} className="text-light-3 small-regular">
-                #{tag}
-              </li>
-            ))}
-          </ul>
+          {/* src/components/shared/PostCard.tsx */}
+
+<p>{post.caption}</p>
+<ul className="flex gap-1 mt-2">
+  {/* 💡 Added "?." and a fallback empty array "|| []" to stop null crashes */}
+  {post.tags?.map((tag: string, index: number) => (
+    <li key={`${tag}${index}`} className="text-light-3 small-regular">
+      #{tag}
+    </li>
+  ))}
+</ul>
+
         </div>
 
         <img

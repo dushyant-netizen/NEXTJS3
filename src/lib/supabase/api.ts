@@ -34,6 +34,148 @@ const supabase = createClient()
 // AUTH
 // ============================================================
 
+// ====================== MESSAGING API ======================
+
+/**
+ * Get all chat rooms for a user
+ */
+export async function createRoom(participantIds: string[], creatorId: string) {
+  const { data, error } = await supabase
+    .from('rooms')
+    .insert([{ 
+      name: 'New Chat', 
+      created_by: creatorId,
+      participants: participantIds // MUST include this if it's a required column
+    }])
+    .select();
+
+  if (error) {
+    console.error("SUPABASE INSERT ERROR:", error);
+    return null;
+  }
+  return data;
+}
+
+export async function getRooms(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('rooms')
+      .select(`
+        *,
+        messages (
+          id,
+          content,
+          created_at,
+          sender_id
+        )
+      `)
+      .contains('participants', [userId])
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get messages for a specific room
+ */
+export async function getMessages(roomId: string) {
+  if (!roomId) return [];
+
+  // Step A: Try fetching just the messages first (No Joins)
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('room_id', roomId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error("DEBUG - Messages Fetch Error:", error);
+    throw error;
+  }
+  
+  // If this works, the issue is the Join in the previous code.
+  return data || [];
+}
+
+/**
+ * Send a new message
+ */
+export async function sendMessage({ roomId, senderId, content }: any) {
+  // 1. Guard clause: Don't even try if data is missing
+  if (!roomId || !senderId || !content) {
+    console.error("Attempted to send message with missing data:", { roomId, senderId, content });
+    return null;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([{ 
+        room_id: roomId, 
+        sender_id: senderId, 
+        content: content 
+      }])
+      .select();
+
+    if (error) {
+      // THIS IS THE KEY: Log the specific error object properties
+      console.error("SUPABASE SEND ERROR:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    console.error("Fatal error in sendMessage:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get or Create Direct Message Room between two users
+ */
+export async function getOrCreateDM(user1Id: string, user2Id: string) {
+  try {
+    // Check if room already exists
+    const { data: existingRoom } = await supabase
+      .from('rooms')
+      .select('id')
+      .contains('participants', [user1Id, user2Id])
+      .eq('is_group', false)
+      .single();
+
+    if (existingRoom) {
+      return existingRoom.id;
+    }
+
+    // Create new DM room
+    const { data: newRoom, error } = await supabase
+      .from('rooms')
+      .insert({
+        participants: [user1Id, user2Id],
+        is_group: false
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+
+    return newRoom.id;
+  } catch (error) {
+    console.error("Error in getOrCreateDM:", error);
+    throw error;
+  }
+}
+
 // Function to check if email or username already exists
 export async function checkEmailOrUsernameExists(email: string, username: string) {
   try {
@@ -1029,8 +1171,8 @@ export async function createPost(post: {
       const firstFile = post.file[0]
       
       // Check file size (limit to 2MB for better performance)
-      if (firstFile.size > 2 * 1024 * 1024) {
-        throw new Error('File size too large. Please choose a file smaller than 2MB.')
+      if (firstFile.size > 10 * 1024 * 1024) {
+        throw new Error('File size too large. Please choose a file smaller than 10MB.');
       }
       
       const fileExt = firstFile.name.split('.').pop()
@@ -1038,7 +1180,6 @@ export async function createPost(post: {
 
       console.log('Starting upload to storage...')
       try {
-        // Simple direct upload without timeout wrapper for testing
         const { error: uploadError } = await supabase.storage
           .from('posts')
           .upload(fileName, firstFile, {
@@ -1062,7 +1203,6 @@ export async function createPost(post: {
         console.log('Public URL generated:', imageUrl)
       } catch (uploadErr) {
         console.error('Upload process failed:', uploadErr)
-        // Continue without image if upload fails
         console.log('Continuing post creation without image due to upload failure')
         imageUrl = null
       }
@@ -1073,7 +1213,6 @@ export async function createPost(post: {
     // Convert tags string to array
     let tagsArray: string[] | null = null
     if (post.tags) {
-      // Split the tags string by comma and trim whitespace
       tagsArray = post.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
     }
     
@@ -1088,34 +1227,30 @@ export async function createPost(post: {
     }
     console.log('Insert data:', insertData)
     
-    // Create post record
+    // Create post record with simplified select structure to isolate database testing
     const { data, error } = await supabase
       .from('posts')
       .insert([insertData])
-      .select(`
-        *,
-        creator:users(*),
-        likes(user_id),
-        saves(user_id)
-      `)
+      .select()
       .single()
 
     if (error) {
-      console.error('Database insert error:', error)
-      console.error('Error details:', JSON.stringify(error, null, 2))
+      console.log("--- POSTGRES ERROR DETECTED ---")
+      console.log("Message:", error.message)
+      console.log("Code:", error.code)
+      console.log("Details:", error.details)
+      console.log("Hint:", error.hint)
       throw error
     }
 
     console.log('Post created successfully:', data)
-
-    // Note: Notifications are now handled by the notification service in the React query mutations
-    
     return data
   } catch (error) {
     console.error('Error creating post:', error)
     throw error
   }
 }
+
 
 export async function getRecentPosts() {
   try {
@@ -1221,18 +1356,26 @@ export async function getUserPosts(userId: string) {
       .from('posts')
       .select(`
         *,
-        creator:users(*),
+        creator:users!posts_creator_id_fkey(*),
         likes(user_id),
         saves(user_id)
-      `)
+      `) // 🛠️ Explicitly calls the exact foreign key relationship name constraint
       .eq('creator_id', userId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
-    if (error) throw error
-    return data
-  } catch (error) {
-    console.error('Error getting user posts:', error)
-    throw error
+    if (error) {
+      console.error('Supabase query error detail:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      throw error;
+    }
+    
+    return data;
+  } catch (error: any) {
+    console.error('Error getting user posts safely:', error?.message || error);
+    throw error;
   }
 }
 
@@ -1254,22 +1397,20 @@ export async function getFollowingFeed(page: number = 1, limit: number = 20) {
     
     const followedUserIds = followsData?.map(follow => follow.following_id) || []
 
-    // Get all posts from followed users and own posts (without privacy filtering in query)
+    // Get all posts from followed users and own posts
     let query = supabase
       .from('posts')
       .select(`
         *,
-        creator:users(*),
+        creator:users!posts_creator_id_fkey(*), 
         likes(user_id),
         saves(user_id)
       `)
       .order('created_at', { ascending: false })
 
     if (followedUserIds.length > 0) {
-      // Get own posts and posts from followed users
       query = query.or(`creator_id.eq.${user.id},creator_id.in.(${followedUserIds.join(',')})`)
     } else {
-      // User doesn't follow anyone: only get own posts
       query = query.eq('creator_id', user.id)
     }
 
@@ -1280,23 +1421,21 @@ export async function getFollowingFeed(page: number = 1, limit: number = 20) {
     // Client-side privacy filtering
     const filteredData = data?.filter(post => {
       const creator = post.creator;
+      if (!creator) return false; // Guard against missing profile references
       
       // Always show own posts
       if (creator.id === user.id) return true;
       
-      // For others' posts, check privacy settings
+      // Check privacy settings
       if (creator.privacy_setting === 'private') return false;
       
-      // For followers_only, check if current user follows the creator
       if (creator.privacy_setting === 'followers_only') {
         return followedUserIds.includes(creator.id);
       }
       
-      // Public posts are always visible
       return true;
     }) || [];
 
-    // Apply pagination after filtering
     const paginatedData = filteredData.slice(offset, offset + limit);
     
     // Add comment counts to posts
@@ -1320,11 +1459,17 @@ export async function getFollowingFeed(page: number = 1, limit: number = 20) {
     }
     
     return paginatedData
-  } catch (error) {
-    console.error('Error getting following feed:', error)
+  } catch (error: any) {
+    // 💡 Enhanced log output to safely display Postgres objects instead of {}
+    console.log("--- TIMELINE FEED ERROR DETECTED ---")
+    console.error('Message:', error?.message || error)
+    console.error('Details:', error?.details)
+    console.error('Hint:', error?.hint)
+    console.error('Code:', error?.code)
     throw error
   }
 }
+
 
 export async function updatePost(postId: string, post: {
   caption?: string
@@ -1571,21 +1716,21 @@ export async function getSavedPosts(userId: string) {
       .from('saves')
       .select(`
         *,
-        posts:posts!inner(
+        posts:posts!saves_post_id_fkey(
           *,
-          creator:users(*),
+          creator:users!posts_creator_id_fkey(*),
           likes(user_id),
           saves(user_id)
         )
       `)
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
-    if (error) throw error
-    return data?.map(save => save.posts) || []
+    if (error) throw error;
+    return data?.map(save => save.posts) || [];
   } catch (error) {
-    console.error('Error getting saved posts:', error)
-    throw error
+    console.error('Full Supabase Error Details:', JSON.stringify(error, null, 2));
+    throw error;
   }
 }
 
@@ -1689,12 +1834,12 @@ export async function getInfinitePosts({ pageParam }: { pageParam?: string }) {
       .from('posts')
       .select(`
         *,
-        creator:users(*),
+        creator:users!posts_creator_id_fkey(*),
         likes(user_id),
         saves(user_id)
       `)
       .order('created_at', { ascending: false })
-      .limit(pageSize)
+      .limit(pageSize);
     
     // If pageParam is provided, fetch posts created before that timestamp
     if (pageParam) {
@@ -2513,12 +2658,13 @@ export async function getAdminAllPosts(page: number = 1, limit: number = 10, sea
         location,
         tags,
         created_at,
-        creator:users!creator_id (
-          id,
-          name,
-          username,
-          image_url
-        )
+        // Update this specific line in your select statement
+creator:users!posts_creator_id_fkey (
+  id,
+  name,
+  username,
+  image_url
+)
       `, { count: 'exact' })
       .order('created_at', { ascending: false });
 

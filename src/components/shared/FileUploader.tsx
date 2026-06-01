@@ -9,6 +9,9 @@ type FileUploaderProps = {
   mediaUrl: string;
 };
 
+// 10MB in bytes calculation constant
+const MAX_FILE_SIZE = 10 * 1024 * 1024; 
+
 const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
   const [file, setFile] = useState<File[]>([]);
   const [fileUrl, setFileUrl] = useState<string>(mediaUrl);
@@ -21,26 +24,15 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
       // Clear any previous error
       setErrorMessage('');
       
-      // Check file size manually
       if (acceptedFiles && acceptedFiles.length > 0) {
-        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-        const oversizedFile = acceptedFiles.find(file => file.size > MAX_SIZE);
-        
-        if (oversizedFile) {
-          const fileSizeMB = (oversizedFile.size / (1024 * 1024)).toFixed(1);
-          setErrorMessage(`File size is ${fileSizeMB}MB. Maximum allowed size is 2MB.`);
-          console.log('File too large:', oversizedFile.size, 'bytes');
-          return;
-        }
-
-        // If all files are valid, proceed
+        // If the file is valid, proceed safely
         console.log('File is valid, processing...');
         setFile(acceptedFiles);
         fieldChange(acceptedFiles);
         setFileUrl(convertFileToUrl(acceptedFiles[0]));
       }
     },
-    [file]
+    [fieldChange] // Swapped 'file' with 'fieldChange' dependency to avoid unnecessary reinvocations
   );
 
   const onDropRejected = useCallback(
@@ -54,7 +46,8 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
             file.errors.forEach((error: any) => {
               console.log('File error:', error);
               if (error.code === 'file-too-large') {
-                setErrorMessage('File size exceeds 2MB limit. Please choose a smaller file.');
+                // Updated warning to reflect 10MB
+                setErrorMessage('File size exceeds 10MB limit. Please choose a smaller file.');
               } else if (error.code === 'file-invalid-type') {
                 setErrorMessage('Invalid file type. Please upload PNG, JPG, or HEIF image.');
               } else {
@@ -74,8 +67,8 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
     accept: {
       "image/*": [".png", ".jpeg", ".jpg", ".heif"],
     },
-    maxSize: 2 * 1024 * 1024, // 2MB
-    multiple: false, // Only allow one file
+    maxSize: MAX_FILE_SIZE, // Updated dropzone options limit to 10MB
+    multiple: false, 
   });
 
   console.log('FileUploader rendered, isDragActive:', isDragActive);
@@ -112,7 +105,8 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
             <h3 className="base-medium text-light-2 mb-2 mt-6">
               Drag photo here
             </h3>
-            <p className="text-light-4 small-regular mb-6">SVG, PNG, JPG (Max 2MB)</p>
+            {/* Updated fallback text block below */}
+            <p className="text-light-4 small-regular mb-6">PNG, JPG, HEIF (Max 10MB)</p>
 
             <Button type="button" className="shad-button_dark_4">
               Select from computer

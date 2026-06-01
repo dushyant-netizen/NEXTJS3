@@ -9,6 +9,10 @@ import { useUserContext } from "@/context/SupabaseAuthContext";
 
 import {
   createPost,
+  createRoom,
+  getMessages,
+  getRooms,
+  sendMessage,
   getCurrentUser,
   getPostById,
   getRecentPosts,
@@ -65,11 +69,82 @@ import {
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { QUERY_KEYS } from "./queryKeys";
 import { notificationService } from "../utils/notificationService";
+// Add this line at the top of your file
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
+// ... rest of your code
+
 export const useCreateUserAccount = () => {
     return useMutation({
         mutationFn: (user: INewUser) => signUpUser(user)
     })
 }
+
+
+export const useClearChat = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (roomId: string) => 
+      supabase.from("messages").delete().eq("room_id", roomId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
+    },
+  });
+};
+
+export const useDeleteMessage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: string) => 
+      supabase.from("messages").delete().eq("id", messageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
+    },
+  });
+};
+
+export const useCreateRoom = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (participantIds: string[]) => createRoom(participantIds),
+    onSuccess: () => {
+      // This tells React Query to refresh the rooms list automatically
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ROOMS] });
+    },
+  });
+};
+
+export const useGetRooms = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_ROOMS, userId],
+    queryFn: () => getRooms(userId),
+    enabled: !!userId,
+  });
+};
+
+export const useGetMessages = (roomId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_MESSAGES, roomId],
+    queryFn: () => getMessages(roomId),
+    enabled: !!roomId,
+  });
+};
+
+export const useSendMessage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    // FIX: Pass an object { roomId, senderId, content } to the function
+    mutationFn: (variables: { roomId: string; senderId: string; content: string }) => 
+      sendMessage(variables), 
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_MESSAGES, variables.roomId],
+      });
+    },
+  });
+};
+
 export const useSignInAccount = () => {
     return useMutation({
         mutationFn: (user: {

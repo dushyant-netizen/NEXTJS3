@@ -11,10 +11,10 @@ import '../src/lib/utils/suppressAuthWarnings'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Socialens',
+  title: 'SOCAL',
   description: 'A social media application powered by Next.js and Supabase',
   icons: {
-    icon: '/assets/images/tablogo.ico',
+    icon: '/assets/images/favicon.ico',
   },
 }
 
