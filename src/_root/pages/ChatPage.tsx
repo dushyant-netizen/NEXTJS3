@@ -216,7 +216,10 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
                   if (existingRoom) {
                     setSelectedRoom(existingRoom);
                   } else {
-                    const newRoom = await createRoom([user.id, f.id]);
+                    const newRoom = await createRoom({
+  participantIds: [user.id, f.id],
+  creatorId: user.id,
+});
                     if (newRoom && newRoom.length > 0) {
                       setSelectedRoom(newRoom[0]); // 2. Room is set here
                     }

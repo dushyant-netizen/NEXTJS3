@@ -51,11 +51,9 @@ const Explore = () => {
 
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 400);
-  const isSearchMode = debouncedSearch.trim().length > 0;
 
   const { data: searchedPosts, isFetching: isSearchFetching } = useSearchPosts(
-    debouncedSearch,
-    isSearchMode // Trigger hook execution safely only when a text criteria matches
+    debouncedSearch // Trigger hook execution safely only when a text criteria matches
   );
 
   useEffect(() => {

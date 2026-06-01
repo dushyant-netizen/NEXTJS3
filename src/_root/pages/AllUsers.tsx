@@ -16,15 +16,11 @@ const AllUsers = () => {
   const isSearchMode = debouncedSearch.trim().length > 0;
 
   // 💡 OPTIMIZATION: Only enable requests conditionally based on user intent
- // In src/_root/pages/AllUsers.tsx
-
-// You must pass the 'enabled' boolean (the first argument).
-// If you don't need a limit, you can pass 'undefined' for the second argument.
-const { 
-  data: allUsers, 
-  isLoading: isLoadingUsers, 
-  isError: isErrorUsers 
-} = useGetUsers(!isSearchMode, undefined);
+  const { 
+    data: allUsers, 
+    isLoading: isLoadingUsers, 
+    isError: isErrorUsers 
+  } = useGetUsers(!isSearchMode);
 
   const { 
     data: searchResults, 

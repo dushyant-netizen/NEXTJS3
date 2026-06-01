@@ -58,7 +58,6 @@ import {
   updateComment,
   deleteComment,
   searchUsers,
-  // Admin management functions
   getAdminAllUsers,
   getAdminUserDetails,
   deactivateUser,
@@ -83,33 +82,66 @@ export const useCreateUserAccount = () => {
 
 export const useClearChat = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (roomId: string) => 
-      supabase.from("messages").delete().eq("room_id", roomId),
+    mutationFn: async (roomId: string) => {
+      const { data, error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("room_id", roomId);
+
+      if (error) throw error;
+
+      return data;
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages"] });
+      queryClient.invalidateQueries({
+        queryKey: ["messages"],
+      });
     },
   });
 };
 
 export const useDeleteMessage = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (messageId: string) => 
-      supabase.from("messages").delete().eq("id", messageId),
+    mutationFn: async (messageId: string) => {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .eq("id", messageId);
+
+      if (error) throw error;
+
+      return true;
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages"] });
+      queryClient.invalidateQueries({
+        queryKey: ["messages"],
+      });
     },
   });
 };
 
 export const useCreateRoom = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (participantIds: string[]) => createRoom(participantIds),
+    mutationFn: ({
+      participantIds,
+      creatorId,
+    }: {
+      participantIds: string[];
+      creatorId: string;
+    }) => createRoom(participantIds, creatorId),
+
     onSuccess: () => {
-      // This tells React Query to refresh the rooms list automatically
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ROOMS] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ROOMS],
+      });
     },
   });
 };
