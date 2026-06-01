@@ -3,14 +3,12 @@
 import { useState } from "react";
 import Loader from "@/components/shared/Loader";
 import UserCard from "@/components/shared/UserCard";
-import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/context/SupabaseAuthContext";
 import { Input } from "@/components/ui/input";
 import useDebounce from "@/hooks/useDebounce";
 import { useGetUsers, useSearchUsers } from "@/lib/react-query/queriesAndMutations";
 
 const AllUsers = () => {
-  const { toast } = useToast();
   const { user } = useUserContext();
   const [searchValue, setSearchValue] = useState("");
   
