@@ -20,7 +20,7 @@ const AllUsers = () => {
     data: allUsers, 
     isLoading: isLoadingUsers, 
     isError: isErrorUsers 
-  } = useGetUsers(!isSearchMode);
+  } = useGetUsers();
 
   const { 
     data: searchResults, 
