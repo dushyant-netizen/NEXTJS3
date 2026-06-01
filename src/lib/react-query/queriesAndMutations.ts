@@ -483,11 +483,13 @@ export const useGetUsers = (enabled: boolean, limit?: number) => {
   });
 };
 
-export const useSearchUsers = (searchTerm: string, limit?: number) => {
+// src/lib/react-query/queriesAndMutations.ts
+
+export const useSearchUsers = (searchTerm: string, enabled: boolean) => {
   return useQuery({
     queryKey: [QUERY_KEYS.SEARCH_USERS, searchTerm],
-    queryFn: () => searchUsers(searchTerm, limit),
-    enabled: !!searchTerm.trim(), // Only run query if search term exists
+    queryFn: () => searchUsers(searchTerm),
+    enabled: enabled, // Use the boolean here to control the query
   });
 };
 
