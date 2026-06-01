@@ -26,7 +26,7 @@ import EmojiPicker from "emoji-picker-react";
 const ChatPage = () => {
 
   // Change line 28 to this:
-  const [_isCreating, _setIsCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const { mutateAsync: deleteMsg } = useDeleteMessage();
   const [isUploading, setIsUploading] = useState(false);
   const { mutateAsync: clearChat } = useClearChat();
