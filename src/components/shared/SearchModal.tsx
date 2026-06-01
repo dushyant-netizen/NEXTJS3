@@ -12,7 +12,7 @@ interface SearchModalProps {
 
 const SearchModal = ({ isOpen, onClose }: SearchModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: users, isLoading } = useSearchUsers(searchTerm, 10);
+  const { data: users, isLoading } = useSearchUsers(searchTerm, !!searchTerm);
 
   if (!isOpen) return null;
 

@@ -21,7 +21,7 @@ const Home = () => {
     data: creators,
     isPending: isUserLoading,
     isError: isErrorCreators,
-  } = useGetUsers(10);
+  } = useGetUsers(true, 10);;
 
   // Filter out current user safely from creator lists
   const otherUsers = creators?.filter((creator: any) => creator.id !== user?.id) || [];

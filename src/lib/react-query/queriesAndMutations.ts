@@ -510,24 +510,23 @@ export const useSearchPosts = (searchTerm: string) => {
   });
 };
 
-export const useGetUsers = (enabled: boolean, limit?: number) => {
+export const useGetUsers = (limit?: number) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_USERS],
+    queryKey: [QUERY_KEYS.GET_USERS, limit],
     queryFn: () => getUsers(limit),
-    enabled: enabled, // This controls the fetching
+    enabled: true,
   });
 };
 
 // src/lib/react-query/queriesAndMutations.ts
 
-export const useSearchUsers = (searchTerm: string, enabled: boolean) => {
+export const useSearchUsers = (searchTerm: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.SEARCH_USERS, searchTerm],
     queryFn: () => searchUsers(searchTerm),
-    enabled: enabled, // Use the boolean here to control the query
+    enabled: !!searchTerm.trim(),
   });
 };
-
 export const useGetAdminStats = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_ADMIN_STATS],
@@ -608,6 +607,7 @@ export const useGetUserById = (
     enabled: enabled && !!userId,
   });
 };
+
 
 // Public hooks for unauthenticated access
 export const useGetPublicUserById = (
